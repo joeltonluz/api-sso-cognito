@@ -17,6 +17,7 @@ const cognito = new AWS.CognitoIdentityServiceProvider({
 });
 
 routes.get('/', (req,res) => {
+  console.log('Healthy!!!')
   return res.status(200).send('Healthy')
 })
 
