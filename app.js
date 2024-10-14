@@ -15,7 +15,9 @@ const cognito = new AWS.CognitoIdentityServiceProvider({
   region: process.env.AWS_REGION
 });
 
-cognito.updateUserPoolClient
+app.get('/', (req,res) => {
+  return res.status(200).send('Healthy')
+})
 
 app.post("/api/auth/create-idp", async (req, res) => {
   const { providerName, metadataUrl } = req.body;
