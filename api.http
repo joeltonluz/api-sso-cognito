@@ -1,0 +1,25 @@
+@url =  http://localhost:3000
+# @token = {{ login.response.body.access_token }}
+
+### viniciusrs95@live.com
+# @name login
+POST {{url}}/api/auth/get-idp-url
+Content-type: application/json
+
+{
+ //"email": "joelton@caiotelles.com.br"
+  "email": "user@keycloak.com"
+}
+
+###
+
+POST {{url}}/api/auth/create-idp
+Content-type: application/json
+
+{
+  "providerName": "jumpcloud",
+  //"metadataUrl": "https://sptest.iamshowcase.com/testsp_metadata.xml"
+  "metadataUrl": "https://sso.jumpcloud.com/saml2/metadata/670aed20befbfc63a8a7a572"
+}
+
+###
