@@ -1,8 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const AWS = require('aws-sdk');
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors());
+app.use(express.json());
 app.use(bodyParser.json());
 
 AWS.config.update({
@@ -42,10 +46,17 @@ app.post("/api/auth/create-idp", async (req, res) => {
       ],
     };
 
-    console.log('before')
-    const result = await cognito. createIdentityProvider(params).promise();
+    const result = await cognito.createIdentityProvider(params).promise();
     console.log('IdP SAML criado com sucesso:', result);
-    return result;
+
+    const resultUpdate = await cognito.updateUserPoolClient({
+      UserPoolId: process.env.AWS_USER_POOL_ID,
+      ClientId: process.env.AWS_CLIENT_ID,
+      SupportedIdentityProviders: [providerName],
+      // AllowedOAuthFlows: ["implicit"],
+      // AllowedOAuthScopes: ["openid", "email", "profile"],
+    }).promise();
+    return resultUpdate;
   } catch (error) {
     console.error('Erro ao criar IdP SAML:', error);
     res.status(500).json({ error: 'Erro ao criar IDP' });
@@ -63,9 +74,7 @@ app.post('/api/auth/get-idp-url', async (req, res) => {
       AttributesToGet: ['email'],
       Filter: `email = "${email}"`
     };
-  
 
-    cognito.createIdentityProvider()
     const { Users } = await cognito.listUsers(params).promise();
     console.log('🚀 ~ file: app.js:32 ~ app.post ~ Users:', JSON.stringify(Users));
 
@@ -94,9 +103,11 @@ app.post('/api/auth/validate-token', async (req, res) => {
 })
 
 app.get('/api/auth/list', async (req, res) => {
-  const result = await cognito.updateUserPoolClient({
-    SupportedIdentityProviders
-  })
+  const result = await cognito.listUserPoolClients({
+    UserPoolId: process.env.AWS_USER_POOL_ID,
+  }).promise();
+
+  return result;
 })
 
 const PORT = process.env.PORT || 3000;
