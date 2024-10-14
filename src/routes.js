@@ -17,11 +17,13 @@ const cognito = new AWS.CognitoIdentityServiceProvider({
 });
 
 routes.get('/', (req,res) => {
+  // #swagger.summary  = 'Healthy'
   console.log('Healthy!!!')
   return res.status(200).send('Healthy')
 })
 
 routes.post("/api/auth/create-idp", async (req, res) => {
+  // #swagger.ignore = true
   const { providerName, metadataUrl } = req.body;
   try {
     const params = {
@@ -62,6 +64,16 @@ routes.post("/api/auth/create-idp", async (req, res) => {
 });
 
 routes.post('/api/auth/get-idp-url', async (req, res) => {
+  // #swagger.summary = 'Pegar a URL de um usuário corporativo'
+  /* #swagger.parameters['body'] = {
+    in: 'body',
+    description: 'Email Corporativo.',
+    required: true,
+    schema: {
+        email: "joelton@caiotelles.com.br",
+    }
+  }
+  */ 
   const { email } = req.body;
   const userPoolId = process.env.AWS_USER_POOL_ID;
   const clientId = process.env.AWS_CLIENT_ID;
@@ -86,7 +98,7 @@ routes.post('/api/auth/get-idp-url', async (req, res) => {
       const idpName = user.Username.split('_')[0]; // Exemplo
       const idpUrl = `https://cogbughunt.auth.us-east-2.amazoncognito.com/oauth2/authorize?identity_provider=${idpName}&redirect_uri=https://jwt.io&response_type=token&client_id=${clientId}&scope=email+openid+profile`;
 
-      res.json({ idpUrl });
+      res.status(201).json({ idpUrl });
     } else {
       res.status(404).json({ error: 'Usuário não encontrado' });
     }
@@ -97,9 +109,9 @@ routes.post('/api/auth/get-idp-url', async (req, res) => {
 });
 
 routes.post('/api/auth/validate-token', async (req, res) => {
+  // #swagger.summary = 'Validar o Token do Usuário corporativo.'
   const { token } = req.query;
-  console.log('🚀 ~ file: routes.js:100 ~ routes.post ~ req:', req);
-  console.log('🚀 ~ file: routes.js:100 ~ routes.post ~ token:', token);
+
   try {
     const decodedToken = jwt.decode(token, {complete: true});
     if (!decodedToken) {
@@ -144,15 +156,15 @@ routes.post('/api/auth/validate-token', async (req, res) => {
  
      // 7. Token é válido
      console.log('Token válido!!!');
-     return verifiedToken;
- 
+     return res.status(201).json({ verifiedToken }); 
   } catch(error) {
     console.error(error.message)
     res.status(500).json({ error: 'Erro ao processar a solicitação' });
   }
 })
 
-routes.get('/api/auth/list', async (req, res) => {
+routes.get('/api/auth/list-applications', async (req, res) => {
+  // #swagger.deprecated = true
   const result = await cognito.listUserPoolClients({
     UserPoolId: process.env.AWS_USER_POOL_ID,
   });
