@@ -8,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
+//app.use(routes);
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -105,7 +106,7 @@ app.post('/api/auth/validate-token', async (req, res) => {
 app.get('/api/auth/list', async (req, res) => {
   const result = await cognito.listUserPoolClients({
     UserPoolId: process.env.AWS_USER_POOL_ID,
-  }).promise();
+  });
 
   return result;
 })
