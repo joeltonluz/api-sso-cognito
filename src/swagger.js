@@ -5,6 +5,7 @@ const doc = {
     title: 'Cognito Bughunt Teste',
     description: 'Documentação Cognito Bughunt Teste'
   },
+  host: process.env.AMBIENT === 'production' ? process.env.PROD_URL : 'localhost:3000',
   schemes: ['http', 'https']
 };
 

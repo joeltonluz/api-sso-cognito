@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js",
+    "start": "node src/swagger.js && node src/server.js",
     "dev": "nodemon --env-file=.env src/server.js",
-    "swagger": "node src/swagger.js"
+    "swagger": "node --env-file=.env src/swagger.js"
   },
   "keywords": [],
   "author": "",
