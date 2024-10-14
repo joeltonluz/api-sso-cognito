@@ -1,5 +1,8 @@
-const express = require('express');
-const AWS = require('aws-sdk');
+import express from 'express';
+import AWS from 'aws-sdk';
+import jwkToPem from 'jwk-to-pem';
+import jwt from 'jsonwebtoken';
+import fetch from 'node-fetch';
 
 const routes = express.Router();
 
@@ -93,7 +96,59 @@ routes.post('/api/auth/get-idp-url', async (req, res) => {
 });
 
 routes.post('/api/auth/validate-token', async (req, res) => {
+  const { token } = req.query;
+  console.log('🚀 ~ file: routes.js:100 ~ routes.post ~ req:', req);
+  console.log('🚀 ~ file: routes.js:100 ~ routes.post ~ token:', token);
+  try {
+    const decodedToken = jwt.decode(token, {complete: true});
+    if (!decodedToken) {
+      throw new Error('Token Inválido')
+    }
 
+    const { kid } = decodedToken.header;
+
+    const jwksUrl = `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_USER_POOL_ID}/.well-known/jwks.json`;
+    const response = await fetch(jwksUrl);
+    const jwks = await response.json();
+
+    // 3. Encontre a chave correspondente ao kid
+    const key = jwks.keys.find(k => k.kid === kid);
+    if (!key) {
+      throw new Error('Chave pública não encontrada');
+    }
+
+     // 4. Converta a chave JWK para PEM
+     const pem = jwkToPem(key);
+
+     // 5. Verifique o token
+     const verifiedToken = jwt.verify(token, pem, { algorithms: ['RS256'] });
+     console.log('🚀 ~ file: routes.js:125 ~ routes.post ~ verifiedToken:', verifiedToken);
+ 
+     // 6. Verifique os claims do token
+     if (verifiedToken.token_use !== 'id') {
+       throw new Error('Token não é um token de identificação');
+     }
+ 
+     // Verifique se o token não está expirado
+     const currentTime = Math.floor(Date.now() / 1000);
+     if (currentTime > verifiedToken.exp) {
+       throw new Error('Token expirado');
+     }
+ 
+     // Verifique o emissor do token
+     const issuer = `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_USER_POOL_ID}`;
+     if (verifiedToken.iss !== issuer) {
+       throw new Error('Emissor inválido');
+     }
+ 
+     // 7. Token é válido
+     console.log('Token válido!!!');
+     return verifiedToken;
+ 
+  } catch(error) {
+    console.error(error.message)
+    res.status(500).json({ error: 'Erro ao processar a solicitação' });
+  }
 })
 
 routes.get('/api/auth/list', async (req, res) => {
@@ -104,4 +159,4 @@ routes.get('/api/auth/list', async (req, res) => {
   return result;
 })
 
-module.exports = routes;
+export default routes;
