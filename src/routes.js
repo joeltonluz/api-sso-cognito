@@ -159,7 +159,7 @@ routes.post('/api/auth/validate-token', async (req, res) => {
      return res.status(201).json({ verifiedToken }); 
   } catch(error) {
     console.error(error.message)
-    res.status(500).json({ error: 'Erro ao processar a solicitação' });
+    res.status(500).json({ error: 'Erro ao processar a solicitação', message: error.message });
   }
 })
 
